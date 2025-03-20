@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -7,6 +8,11 @@ const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // State for password visibility
+  const [registrationSuccess, setRegistrationSuccess] = useState(false); // State for registration success
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,16 +20,34 @@ const LoginPage: React.FC = () => {
     setError('');
 
     try {
-      // Here you would implement your actual login logic
-      // This is just a placeholder
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock authentication - replace with actual API call
-      if (email && password) {
-        console.log('Login successful', { email, rememberMe });
-        // Redirect or update auth state here
+      const url = isRegistering
+        ? 'http://localhost:3002/api/auth/register' // Register endpoint
+        : 'http://localhost:3002/api/auth/login';   // Login endpoint
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, rememberMe })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        console.log(`${isRegistering ? 'Registration' : 'Login'} successful`, data);
+        
+        if (isRegistering) {
+          // Registration successful, show success message
+          setRegistrationSuccess(true);
+          setTimeout(() => {
+            setRegistrationSuccess(false);
+            setIsRegistering(false); // Switch to login mode
+          }, 3000); // Hide message after 3 seconds
+        } else {
+          // For login, store JWT token and redirect to home page
+          localStorage.setItem('token', data.token); // Store the token
+          navigate('/'); // Redirect to home page
+        }
       } else {
-        throw new Error('Invalid credentials');
+        throw new Error(data.message || 'Something went wrong');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
@@ -36,7 +60,7 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
+          {isRegistering ? 'Create an account' : 'Sign in to your account'}
         </h2>
       </div>
 
@@ -50,7 +74,18 @@ const LoginPage: React.FC = () => {
                 </div>
               </div>
             )}
-            
+
+            {registrationSuccess && (
+              <div className="rounded-md bg-green-50 p-4 mb-4">
+                <div className="flex">
+                  <div className="text-sm text-green-700">Registration successful! Please log in.</div>
+                  <svg className="ml-2 h-5 w-5 text-green-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m0 0l-4-4-2 2m4 4H5" />
+                  </svg>
+                </div>
+              </div>
+            )}
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                 Email address
@@ -73,17 +108,24 @@ const LoginPage: React.FC = () => {
               <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative">
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete="current-password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-900 focus:border-blue-500 sm:text-sm"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-sm text-blue-500"
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
               </div>
             </div>
 
@@ -126,42 +168,21 @@ const LoginPage: React.FC = () => {
                 ) : (
                   <span className="flex items-center">
                     <LogIn className="mr-2 h-4 w-4" />
-                    Sign in
+                    {isRegistering ? 'Register' : 'Sign in'}
                   </span>
                 )}
               </button>
             </div>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
-              </div>
-            </div>
-
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              <div>
-                <a
-                  href="#"
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  <span>Google</span>
-                </a>
-              </div>
-
-              <div>
-                <a
-                  href="#"
-                  className="w-full inline-flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
-                >
-                  <span>GitHub</span>
-                </a>
-              </div>
-            </div>
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              onClick={() => setIsRegistering(!isRegistering)}
+              className="text-sm font-medium text-blue-900 hover:text-blue-500"
+            >
+              {isRegistering ? 'Already have an account? Sign in' : 'Don\'t have an account? Register'}
+            </button>
           </div>
         </div>
       </div>

@@ -59,7 +59,6 @@ function App() {
             <Route path="/contact/join-us" element={<JoinUsPage />} />             
             <Route path="/contact/collaboration" element={<CollaborationPage />} />  
             <Route path="/login" element={<LoginPage />} />
-         
           </Routes>         
         </div>         
         <Footer />       
