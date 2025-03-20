@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Cpu, Users, FlaskConical, BookOpen, Building2, GraduationCap, Mail, ChevronDown } from 'lucide-react';
+import { Menu, X, Cpu, Users, FlaskConical, BookOpen, Building2, GraduationCap, Mail, ChevronDown, LogIn } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // Navigation items with dropdown options
@@ -215,13 +215,6 @@ const Navbar: React.FC = () => {
                   }}
                 >
                   <div className="py-1">
-                    <Link 
-                      to={item.path} 
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setActiveDropdown(null)}
-                    >
-                      All {item.text}
-                    </Link>
                     {item.dropdown.map((dropdownItem, index) => (
                       <Link 
                         key={index} 
@@ -236,10 +229,26 @@ const Navbar: React.FC = () => {
                 </div>
               </div>
             ))}
+            
+            {/* Login Link - Desktop */}
+            <Link 
+              to="/login" 
+              className="text-white hover:text-gray-200 px-3 py-2 mx-1 rounded-md text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <LogIn className="h-4 w-4" />
+              LOGIN
+            </Link>
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
+            <Link 
+              to="/login" 
+              className="mr-4 text-white hover:text-gray-200 flex items-center gap-1"
+            >
+              <LogIn className="h-4 w-4" />
+              LOGIN
+            </Link>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-white hover:text-gray-200"
@@ -275,13 +284,6 @@ const Navbar: React.FC = () => {
                       : 'max-h-0 opacity-0'
                   }`}
                 >
-                  <Link 
-                    to={item.path} 
-                    className="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white"
-                    onClick={closeMenu}
-                  >
-                    All {item.text}
-                  </Link>
                   {item.dropdown.map((dropdownItem, index) => (
                     <Link 
                       key={index} 

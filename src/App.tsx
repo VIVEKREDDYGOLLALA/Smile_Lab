@@ -1,7 +1,7 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom'; 
 import Navbar from './components/Navbar'; 
 import Footer from './components/Footer'; 
-
+import LoginPage from './pages/LoginPage';
 // Page Components
 import HomePage from './pages/HomePage'; 
 import MembersPage from './pages/MembersPage'; 
@@ -57,7 +57,9 @@ function App() {
             <Route path="/lecture/workshops" element={<WorkshopsPage />} />             
             <Route path="/contact/location" element={<LocationPage />} />             
             <Route path="/contact/join-us" element={<JoinUsPage />} />             
-            <Route path="/contact/collaboration" element={<CollaborationPage />} />           
+            <Route path="/contact/collaboration" element={<CollaborationPage />} />  
+            <Route path="/login" element={<LoginPage />} />
+         
           </Routes>         
         </div>         
         <Footer />       
