@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -8,6 +9,7 @@ const LoginPage: React.FC = () => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const { isLoggedIn, setIsLoggedIn } = useAuth();
   const [isRegistering, setIsRegistering] = useState(false);
   const [showPassword, setShowPassword] = useState(false); // State for password visibility
   const [registrationSuccess, setRegistrationSuccess] = useState(false); // State for registration success
@@ -43,6 +45,7 @@ const LoginPage: React.FC = () => {
           }, 3000); // Hide message after 3 seconds
         } else {
           // For login, store JWT token and redirect to home page
+          setIsLoggedIn(true); 
           localStorage.setItem('token', data.token); // Store the token
           navigate('/'); // Redirect to home page
         }

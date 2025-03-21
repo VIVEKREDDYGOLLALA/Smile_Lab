@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Cpu, Users, FlaskConical, BookOpen, Building2, GraduationCap, Mail, ChevronDown, LogIn } from 'lucide-react';
+import { Menu, X, Cpu, Users, FlaskConical, BookOpen, Building2, GraduationCap, Mail, ChevronDown, LogIn, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext'; // Import the useAuth hook
 
 // Navigation items with dropdown options
 const navItems = [
@@ -75,59 +76,52 @@ const navItems = [
       { text: 'Join Us', path: '/contact/join-us' },
       { text: 'Collaboration Inquiries', path: '/contact/collaboration' }
     ]
-  }
+  },
 ];
 
 const Navbar: React.FC = () => {
+  const s='log';
+  const { isLoggedIn, setIsLoggedIn } = useAuth(); // Accessing the isLoggedIn state from context
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [navVisible, setNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
+
   // Handle scroll to hide/show navbar
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      
       if (currentScrollY > lastScrollY) {
-        // Scrolling down
         setNavVisible(false);
       } else {
-        // Scrolling up
         setNavVisible(true);
       }
-      
       setLastScrollY(currentScrollY);
     };
-    
+
     window.addEventListener('scroll', handleScroll);
-    
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, [lastScrollY]);
 
-  // Modified hover handlers for better dropdown behavior
   const handleDropdownEnter = (id: string) => {
-    // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+      timeoutRef.current = null
     }
     setActiveDropdown(id);
   };
 
   const handleDropdownLeave = (id: string) => {
-    // Set timeout to close dropdown with a slight delay
-    // This gives users time to move their mouse to the dropdown
     timeoutRef.current = setTimeout(() => {
       setActiveDropdown(null);
-    }, 300); // 300ms delay before closing
+    }, 150);
   };
 
-  // Handle clicking outside to close dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (activeDropdown !== null) {
@@ -144,15 +138,6 @@ const Navbar: React.FC = () => {
     };
   }, [activeDropdown]);
 
-  // Clear timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
   const closeMenu = () => {
     setIsMenuOpen(false);
     setActiveDropdown(null);
@@ -160,6 +145,11 @@ const Navbar: React.FC = () => {
 
   const toggleDropdown = (id: string) => {
     setActiveDropdown(activeDropdown === id ? null : id);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false); // Set logged-in state to false
+    localStorage.removeItem('token'); // Remove the JWT token
   };
 
   return (
@@ -174,18 +164,18 @@ const Navbar: React.FC = () => {
               </div>
             </Link>
           </div>
-          
+
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center">
             {navItems.map((item) => (
-              <div 
-                key={item.id} 
+              <div
+                key={item.id}
                 className="relative"
-                ref={el => dropdownRefs.current[item.id] = el}
+                ref={(el) => (dropdownRefs.current[item.id] = el)}
                 onMouseEnter={() => handleDropdownEnter(item.id)}
                 onMouseLeave={() => handleDropdownLeave(item.id)}
               >
-                <Link 
+                <Link
                   to={item.path}
                   className="text-white hover:text-gray-200 px-3 py-2 mx-1 rounded-md text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer"
                   onClick={() => setActiveDropdown(null)}
@@ -194,31 +184,17 @@ const Navbar: React.FC = () => {
                   {item.text}
                   <ChevronDown className={`h-4 w-4 transition-transform ${activeDropdown === item.id ? 'rotate-180' : ''}`} />
                 </Link>
-                
-                {/* Desktop Dropdown with improved visibility and hover behavior */}
-                <div 
+
+                <div
                   className={`absolute left-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 transition-all duration-150 ${
                     activeDropdown === item.id ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2 pointer-events-none'
                   }`}
-                  onMouseEnter={() => {
-                    // Clear timeout when mouse enters dropdown
-                    if (timeoutRef.current) {
-                      clearTimeout(timeoutRef.current);
-                      timeoutRef.current = null;
-                    }
-                  }}
-                  onMouseLeave={() => {
-                    // Close dropdown after a slight delay when mouse leaves
-                    timeoutRef.current = setTimeout(() => {
-                      setActiveDropdown(null);
-                    }, 300);
-                  }}
                 >
                   <div className="py-1">
                     {item.dropdown.map((dropdownItem, index) => (
-                      <Link 
-                        key={index} 
-                        to={dropdownItem.path} 
+                      <Link
+                        key={index}
+                        to={dropdownItem.path}
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setActiveDropdown(null)}
                       >
@@ -229,26 +205,69 @@ const Navbar: React.FC = () => {
                 </div>
               </div>
             ))}
-            
-            {/* Login Link - Desktop */}
-            <Link 
-              to="/login" 
-              className="text-white hover:text-gray-200 px-3 py-2 mx-1 rounded-md text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer"
+
+            {/* Conditional Rendering for Login/User */}
+            {isLoggedIn ? (
+            <div
+              className="relative"
+              onMouseEnter={() => handleDropdownEnter('log')}
+              onMouseLeave={() => handleDropdownLeave('log')}
             >
-              <LogIn className="h-4 w-4" />
-              LOGIN
-            </Link>
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="text-white flex items-center gap-2"
+              >
+                <User className="h-6 w-6" />
+                <ChevronDown className={`h-4 w-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* User Dropdown Menu */}
+              {activeDropdown === 'log' && (
+                <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                  <div className="py-1">
+                    <Link
+                      to="/"
+                      onClick={handleLogout}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Logout
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            ) : (
+              <Link
+                to="/login"
+                className="text-white hover:text-gray-200 px-3 py-2 mx-1 rounded-md text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer"
+              >
+                <LogIn className="h-4 w-4" />
+                LOGIN
+              </Link>
+            )}
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <Link 
-              to="/login" 
-              className="mr-4 text-white hover:text-gray-200 flex items-center gap-1"
-            >
-              <LogIn className="h-4 w-4" />
-              LOGIN
-            </Link>
+            <div className="mr-2">
+                {isLoggedIn ? (
+                  <Link
+                    to="/"
+                    onClick={handleLogout}
+                    className="text-white hover:text-gray-200 px-3 py-2 rounded-md text-base font-medium"
+                  >
+                    Logout
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="text-white hover:text-gray-200 px-3 py-2 rounded-md text-base font-medium"
+                  >
+                    Login
+                  </Link>
+                )}
+              </div>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-white hover:text-gray-200"
@@ -275,19 +294,18 @@ const Navbar: React.FC = () => {
                   </div>
                   <ChevronDown className={`h-4 w-4 transition-transform ${activeDropdown === item.id ? 'rotate-180' : ''}`} />
                 </div>
-                
-                {/* Mobile Dropdown - Improved with smooth transitions */}
-                <div 
+
+                <div
                   className={`pl-6 mt-1 space-y-1 transition-all duration-300 overflow-hidden ${
-                    activeDropdown === item.id 
-                      ? 'max-h-96 opacity-100' 
+                    activeDropdown === item.id
+                      ? 'max-h-96 opacity-100'
                       : 'max-h-0 opacity-0'
                   }`}
                 >
                   {item.dropdown.map((dropdownItem, index) => (
-                    <Link 
-                      key={index} 
-                      to={dropdownItem.path} 
+                    <Link
+                      key={index}
+                      to={dropdownItem.path}
                       className="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white"
                       onClick={closeMenu}
                     >
