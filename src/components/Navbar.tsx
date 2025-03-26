@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Cpu, Users, FlaskConical, BookOpen, Building2, GraduationCap, Mail, ChevronDown, LogIn } from 'lucide-react';
+import { Menu, X, Cpu, Users, FlaskConical, BookOpen, Building2, GraduationCap, Mail, ChevronDown, LogIn, Image } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 // Navigation items with dropdown options
@@ -38,6 +38,18 @@ const navItems = [
       { text: 'Conference Papers', path: '/publications/conference-papers' },
       { text: 'Patents', path: '/publications/patents' },
       { text: 'Books & Book Chapters', path: '/publications/books' }
+    ]
+  },
+  {
+    id: 'gallery',
+    text: 'GALLERY',
+    icon: <Image className="h-4 w-4" />,
+    path: '/gallery',
+    dropdown: [
+      { text: 'Lab Events', path: '/gallery/lab-events' },
+      { text: 'Conferences', path: '/gallery/conferences' },
+      { text: 'Research Highlights', path: '/gallery/research-highlights' },
+      { text: 'Workshops & Seminars', path: '/gallery/workshops-seminars' }
     ]
   },
   {
@@ -261,7 +273,7 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <div className="md:hidden bg-blue-700 backdrop-blur-sm">
+        <div className="md:hidden bg-blue-900 backdrop-blur-sm">
           <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {navItems.map((item) => (
               <div key={item.id} className="block">

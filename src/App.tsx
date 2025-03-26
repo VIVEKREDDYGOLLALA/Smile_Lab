@@ -22,7 +22,11 @@ import ContactPage from './pages/ContactPage';
 import TutorialsPage from './pages/lecture/TutorialsPage'; 
 import LocationPage from './pages/contact/LocationPage'; 
 import JoinUsPage from './pages/contact/JoinUsPage'; 
-import CollaborationPage from './pages/contact/CollaborationPage';  
+import CollaborationPage from './pages/contact/CollaborationPage';
+
+// Gallery Components
+import GalleryMain from './pages/gallery/GalleryMain';
+import Gallery from './pages/gallery/Gallery';
 
 function App() {   
   return (     
@@ -40,6 +44,11 @@ function App() {
             <Route path="/publications/:subpage" element={<PublicationsPage />} />  
             {/* Add the new route for publication detail page */}           
             <Route path="/publications/:pubType/view/:pubId" element={<PublicationDetailPage />} />
+            
+            {/* Gallery Routes */}
+            <Route path="/gallery" element={<GalleryMain />} />
+            <Route path="/gallery/:category" element={<Gallery />} />
+            
             <Route path="/facility" element={<FacilityPage />} />             
             <Route path="/facility/:subpage" element={<FacilityPage />} />             
             <Route path="/facility/lab-equipment" element={<LabEquipmentPage />} />             
