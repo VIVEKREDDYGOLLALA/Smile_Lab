@@ -74,7 +74,7 @@ const upcomingEvents = [
   },
   {
     id: 2,
-    title: "Workshop on Neuromorphic Computing",
+    title: "Workshop on Neuromorphic Computing ( limited slots available )",
     date: "2025-03-25",
     time: "1:00 PM - 4:00 PM",
     location: "Engineering Building, Room E220",

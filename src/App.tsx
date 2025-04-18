@@ -7,7 +7,7 @@ import HomePage from './pages/HomePage';
 import MembersPage from './pages/MembersPage'; 
 import ResearchPage from './pages/ResearchPage'; 
 import PublicationsPage from './pages/PublicationsPage'; 
-import PublicationDetailPage from './pages/PublicationDetailPage.tsx'; // Import the new component
+import PublicationDetailPage from './pages/PublicationDetailPage'; 
 import FacilityPage from './pages/FacilityPage'; 
 import LabEquipmentPage from './pages/facility/LabEquipmentPage'; 
 import CleanroomPage from './pages/facility/CleanroomPage'; 
@@ -27,12 +27,78 @@ import CollaborationPage from './pages/contact/CollaborationPage';
 // Gallery Components
 import GalleryMain from './pages/gallery/GalleryMain';
 import Gallery from './pages/gallery/Gallery';
+import { useState, useEffect } from 'react';
+
+// Icons from Lucide for loading animation
+import { Users, FlaskConical, BookOpen, Building2, GraduationCap, Mail, Image, Cpu } from 'lucide-react';
 
 function App() {   
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingIcon, setLoadingIcon] = useState<React.ReactNode>(null);
+  const [targetPath, setTargetPath] = useState('');
+
+  // Map navigation item IDs to their corresponding icons
+  const iconMap: Record<string, React.ReactNode> = {
+    'home': <Cpu size={32} />,
+    'member': <Users size={32} />,
+    'research': <FlaskConical size={32} />,
+    'publication': <BookOpen size={32} />,
+    'gallery': <Image size={32} />,
+    'facility': <Building2 size={32} />,
+    'lecture': <GraduationCap size={32} />,
+    'contact': <Mail size={32} />
+  };
+
+  // Listen for page loading events
+  useEffect(() => {
+    const handleLoadingStart = (event: CustomEvent<{path: string, navItemId: string}>) => {
+      setIsLoading(true);
+      setTargetPath(event.detail.path);
+      
+      // Get the main category from the event
+      const navItemId = event.detail.navItemId;
+      const mainCategory = navItemId.split('-')[0]; // Extract main category for sub-items
+      
+      // Set the icon based on the navigation item
+      if (iconMap[mainCategory]) {
+        setLoadingIcon(iconMap[mainCategory]);
+      } else {
+        // Default icon if not found
+        setLoadingIcon(iconMap.home);
+      }
+    };
+
+    const handleLoadingEnd = () => {
+      setIsLoading(false);
+      setLoadingIcon(null);
+    };
+
+    window.addEventListener('pageLoadingStart', handleLoadingStart as EventListener);
+    window.addEventListener('pageLoadingEnd', handleLoadingEnd);
+
+    return () => {
+      window.removeEventListener('pageLoadingStart', handleLoadingStart as EventListener);
+      window.removeEventListener('pageLoadingEnd', handleLoadingEnd);
+    };
+  }, []);
+
   return (     
     <Router>       
-      <div className="min-h-screen bg-white flex flex-col">         
-        <Navbar />         
+      <div className="min-h-screen bg-white flex flex-col">     
+        {isLoading && (
+          <div className="fixed inset-0 bg-black bg-opacity-70 flex flex-col justify-center items-center z-50">
+            <div className="animate-bounce mb-4 text-white">
+              {loadingIcon}
+            </div>
+            <div className="w-64 h-2 bg-gray-700 rounded-full overflow-hidden">
+              <div className="h-full bg-blue-500 animate-pulse rounded-full"></div>
+            </div>
+            <div className="mt-4 text-white font-medium">
+              Navigating to {targetPath.substring(1) || 'Home'}...
+            </div>
+          </div>
+        )}    
+        <Navbar />       
         <div className="flex-grow">           
           <Routes>             
             <Route path="/" element={<HomePage />} />             

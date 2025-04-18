@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, Cpu, Users, FlaskConical, BookOpen, Building2, GraduationCap, Mail, ChevronDown, LogIn, Image } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 // Navigation items with dropdown options
 const navItems = [
@@ -90,13 +90,15 @@ const navItems = [
   }
 ];
 
-const Navbar: React.FC = () => {
+const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [navVisible, setNavVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const dropdownRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState(null);
+  const [loadingNavItem, setLoadingNavItem] = useState(null);
+  const navigate = useNavigate();
+  const dropdownRefs = useRef({});
+  const timeoutRef = useRef(null);
   
   // Handle scroll to hide/show navbar
   useEffect(() => {
@@ -122,7 +124,7 @@ const Navbar: React.FC = () => {
   }, [lastScrollY]);
 
   // Modified hover handlers for better dropdown behavior
-  const handleDropdownEnter = (id: string) => {
+  const handleDropdownEnter = (id) => {
     // Clear any existing timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -131,7 +133,7 @@ const Navbar: React.FC = () => {
     setActiveDropdown(id);
   };
 
-  const handleDropdownLeave = (id: string) => {
+  const handleDropdownLeave = () => {
     // Set timeout to close dropdown with a slight delay
     // This gives users time to move their mouse to the dropdown
     timeoutRef.current = setTimeout(() => {
@@ -141,10 +143,10 @@ const Navbar: React.FC = () => {
 
   // Handle clicking outside to close dropdowns
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event) => {
       if (activeDropdown !== null) {
         const dropdownRef = dropdownRefs.current[activeDropdown];
-        if (dropdownRef && !dropdownRef.contains(event.target as Node)) {
+        if (dropdownRef && !dropdownRef.contains(event.target)) {
           setActiveDropdown(null);
         }
       }
@@ -170,8 +172,44 @@ const Navbar: React.FC = () => {
     setActiveDropdown(null);
   };
 
-  const toggleDropdown = (id: string) => {
+  const toggleDropdown = (id) => {
     setActiveDropdown(activeDropdown === id ? null : id);
+  };
+
+  // Modified navigation handler to show icon animation and trigger global loading state
+  const handleNavigation = (path, itemId) => {
+    // Don't show loading for login page
+    if (path === '/login') {
+      navigate(path);
+      return;
+    }
+    
+    // Set which icon is animating
+    setLoadingNavItem(itemId);
+    
+    // Trigger a custom event for App.tsx to show loading state
+    const loadingEvent = new CustomEvent('pageLoadingStart', { 
+      detail: { path, navItemId: itemId } 
+    });
+    window.dispatchEvent(loadingEvent);
+    
+    // Navigate after a delay (3 seconds)
+    setTimeout(() => {
+      setLoadingNavItem(null);
+      navigate(path);
+      
+      // Trigger event to stop loading
+      const loadingEndEvent = new CustomEvent('pageLoadingEnd');
+      window.dispatchEvent(loadingEndEvent);
+    }, 3000);
+  };
+
+  // Get animated icon class
+  const getIconClass = (itemId) => {
+    if (loadingNavItem === itemId) {
+      return "animate-bounce";
+    }
+    return "";
   };
 
   return (
@@ -179,12 +217,13 @@ const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-20">
           <div className="flex items-center">
-            <Link to="/" onClick={closeMenu}>
-              <div className="flex items-center">
-                <Cpu className="h-8 w-8 text-white" />
-                <span className="ml-2 text-xl font-semibold text-white">SMILE Lab</span>
-              </div>
-            </Link>
+            <div 
+              onClick={() => handleNavigation('/', 'home')}
+              className="flex items-center cursor-pointer"
+            >
+              <Cpu className={`h-8 w-8 text-white ${getIconClass('home')}`} />
+              <span className="ml-2 text-xl font-semibold text-white">SMILE Lab</span>
+            </div>
           </div>
           
           {/* Desktop Navigation */}
@@ -195,17 +234,18 @@ const Navbar: React.FC = () => {
                 className="relative"
                 ref={el => dropdownRefs.current[item.id] = el}
                 onMouseEnter={() => handleDropdownEnter(item.id)}
-                onMouseLeave={() => handleDropdownLeave(item.id)}
+                onMouseLeave={() => handleDropdownLeave()}
               >
-                <Link 
-                  to={item.path}
-                  className="text-white hover:text-gray-200 px-3 py-2 mx-1 rounded-md text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer"
-                  onClick={() => setActiveDropdown(null)}
+                <div 
+                  className="text-white hover:text-gray-200 px-2 py-2 mx-1 rounded-md text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer"
+                  onClick={() => handleNavigation(item.path, item.id)}
                 >
-                  {item.icon}
+                  <span className={getIconClass(item.id)}>
+                    {item.icon}
+                  </span>
                   {item.text}
                   <ChevronDown className={`h-4 w-4 transition-transform ${activeDropdown === item.id ? 'rotate-180' : ''}`} />
-                </Link>
+                </div>
                 
                 {/* Desktop Dropdown with improved visibility and hover behavior */}
                 <div 
@@ -228,14 +268,13 @@ const Navbar: React.FC = () => {
                 >
                   <div className="py-1">
                     {item.dropdown.map((dropdownItem, index) => (
-                      <Link 
+                      <div 
                         key={index} 
-                        to={dropdownItem.path} 
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => setActiveDropdown(null)}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleNavigation(dropdownItem.path, `${item.id}-sub-${index}`)}
                       >
                         {dropdownItem.text}
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -243,24 +282,24 @@ const Navbar: React.FC = () => {
             ))}
             
             {/* Login Link - Desktop */}
-            <Link 
-              to="/login" 
+            <div 
               className="text-white hover:text-gray-200 px-3 py-2 mx-1 rounded-md text-sm font-medium transition-colors flex items-center gap-2 cursor-pointer"
+              onClick={() => handleNavigation('/login', 'login')}
             >
-              <LogIn className="h-4 w-4" />
+              <LogIn className={`h-4 w-4 ${getIconClass('login')}`} />
               LOGIN
-            </Link>
+            </div>
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden flex items-center">
-            <Link 
-              to="/login" 
-              className="mr-4 text-white hover:text-gray-200 flex items-center gap-1"
+            <div 
+              className="mr-4 text-white hover:text-gray-200 flex items-center gap-1 cursor-pointer"
+              onClick={() => handleNavigation('/login', 'login')}
             >
-              <LogIn className="h-4 w-4" />
+              <LogIn className={`h-4 w-4 ${getIconClass('login')}`} />
               LOGIN
-            </Link>
+            </div>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-white hover:text-gray-200"
@@ -282,7 +321,9 @@ const Navbar: React.FC = () => {
                   onClick={() => toggleDropdown(item.id)}
                 >
                   <div className="flex items-center gap-2">
-                    {item.icon}
+                    <span className={getIconClass(item.id)}>
+                      {item.icon}
+                    </span>
                     {item.text}
                   </div>
                   <ChevronDown className={`h-4 w-4 transition-transform ${activeDropdown === item.id ? 'rotate-180' : ''}`} />
@@ -297,14 +338,16 @@ const Navbar: React.FC = () => {
                   }`}
                 >
                   {item.dropdown.map((dropdownItem, index) => (
-                    <Link 
+                    <div 
                       key={index} 
-                      to={dropdownItem.path} 
-                      className="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white"
-                      onClick={closeMenu}
+                      className="block px-3 py-2 rounded-md text-sm text-gray-300 hover:text-white cursor-pointer"
+                      onClick={() => {
+                        closeMenu();
+                        handleNavigation(dropdownItem.path, `${item.id}-sub-${index}`);
+                      }}
                     >
                       {dropdownItem.text}
-                    </Link>
+                    </div>
                   ))}
                 </div>
               </div>
