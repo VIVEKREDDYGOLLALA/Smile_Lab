@@ -31,8 +31,8 @@ const MembersPage = () => {
   // Sample data
   const members: Members = {
     faculty: [
-      { id: 1, name: 'Dr. Jane Smith', title: 'Professor & Lab Director', image: '/api/placeholder/400/400', bio: 'Ph.D. in Electrical Engineering from MIT. 15+ years of experience in nanoelectronics research.', research: 'Neuromorphic computing, Quantum devices' },
-      { id: 2, name: 'Dr. Michael Johnson', title: 'Associate Professor', image: '/api/placeholder/400/400', bio: 'Ph.D. in Physics from Stanford. Expert in semiconductor device physics.', research: 'Spintronics, 2D materials' },
+      { id: 1, name: 'Dr. pandiarasan ', title: 'Professor & Lab Director', image: '/api/placeholder/400/400', bio: 'Ph.D. in Electrical Engineering from MIT. 15+ years of experience in nanoelectronics research.', research: 'Neuromorphic computing, Quantum devices' },
+      { id: 2, name: 'Dr. M', title: 'Associate Professor', image: '/api/placeholder/400/400', bio: 'Ph.D. in Physics from Stanford. Expert in semiconductor device physics.', research: 'Spintronics, 2D materials' },
       { id: 3, name: 'Dr. Sarah Williams', title: 'Assistant Professor', image: '/api/placeholder/400/400', bio: 'Ph.D. in Materials Science from Berkeley. Specializes in novel materials for electronics.', research: 'Advanced memory materials, Ferroelectric devices' }
     ],
     researchers: [
